@@ -1,0 +1,9 @@
+@import url("https://fonts.googleapis.com/css2?family=Madimi+One&display=swap");
+
+.App {
+  font-family: "Madimi One", cursive;
+  background-color: #282c34;
+  color: white;
+  min-height: 100vh;
+  display: flex;
+}
