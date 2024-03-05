@@ -3,24 +3,119 @@ import React, { useState } from "react";
 import { useHistory } from "react-router-dom";
 import axios from "axios";
 import { Box, Button, Container, Input, Text } from "@chakra-ui/react";
+import { useToast } from "@chakra-ui/react";
+import { FormControl, FormLabel } from "@chakra-ui/react";
 
 const Signup = () => {
-  const [username, setUsername] = useState("");
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [pic, setPic] = useState("");
   const history = useHistory();
+  const [loading, setLoading] = useState(false);
+  const toast = useToast();
+
+  const postDetails = (pics) => {
+    setLoading(true);
+    if (pics === undefined) {
+      toast({
+        title: "Account created.",
+        description: "We've created your account for you.",
+        status: "success",
+        duration: 5000,
+        isClosable: true,
+      });
+      return;
+    }
+
+    if (pics.type === "image/jpeg" || pics.type === "image/png") {
+      const data = new FormData();
+      data.append("file", pics);
+      data.append("upload_preset", "live-chat");
+      data.append("cloud_name", "de22izcfb");
+      fetch("https://api.cloudinary.com/v1_1/de22izcfb/image/upload", {
+        method: "post",
+        body: data,
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          setPic(data.url.toString());
+          console.log(data.url.toString());
+          setLoading(false);
+        })
+        .catch((err) => {
+          console.log(err);
+          setLoading(false);
+        });
+    } else {
+      toast({
+        title: "Invalid file type",
+        description: "Please upload a valid file type",
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+      });
+      setLoading(false);
+      return;
+    }
+  };
 
   const handleSubmit = async () => {
-    try {
-      await axios.post("/api/signup", {
-        username,
-        password,
+    setLoading(true);
+    if (!name || !email || !password || !confirmPassword) {
+      toast({
+        title: "Invalid Input",
+        description: "Please fill all the fields",
+        status: "error",
+        duration: 5000,
+        isClosable: true,
       });
-      history.push("/login");
+      setLoading(false);
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      toast({
+        title: "Invalid Input",
+        description: "Passwords do not match",
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+      });
+      setLoading(false);
+      return;
+    }
+    try {
+      const config = {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      };
+      const { data } = await axios.post(
+        "/api/users",
+        { name, email, password, pic },
+        config
+      );
+      toast({
+        title: "Account created.",
+        description: "We've created your account for you.",
+        status: "success",
+        duration: 5000,
+        isClosable: true,
+      });
+      localStorage.setItem("userInfo", JSON.stringify(data));
+      setLoading(false);
+      history.push("/chat");
     } catch (error) {
-      console.log(error);
+      toast({
+        title: "Invalid Input",
+        description: error.response.data.message,
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+      });
+      setLoading(false);
     }
   };
 
@@ -53,9 +148,9 @@ const Signup = () => {
         color="black"
       >
         <Input
-          placeholder="Username"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
+          placeholder="Name"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
           m="0 0 15px 0"
           isRequired
         />
@@ -82,15 +177,16 @@ const Signup = () => {
           m="0 0 15px 0"
           isRequired
         />
-        <Input
-          type="file"
-          placeholder="Profile Picture"
-          accept="image/*"
-          value={pic}
-          onChange={(e) => setPic(e.target.value)}
-          m="0 0 15px 0"
-        />
-        <Button onClick={handleSubmit} colorScheme="blue">
+        <FormControl id="pic">
+          <FormLabel>Upload your Picture</FormLabel>
+          <Input
+            type="file"
+            p={1.5}
+            accept="image/*"
+            onChange={(e) => postDetails(e.target.files[0])}
+          />
+        </FormControl>
+        <Button onClick={handleSubmit} colorScheme="blue" isLoading={loading}>
           Sign Up
         </Button>
       </Box>

@@ -1,24 +1,25 @@
-import React, { useEffect, useState } from "react";
-import axios from "axios";
+import { ChatState } from "../Context/ChatProvider";
+import SideDrawer from "../Component/miscellaneous/SideDrawer";
+import MyChats from "../Component/MyChats";
+import ChatBox from "../Component/ChatBox";
+import { Box } from "@chakra-ui/layout";
 
 const Chatpage = () => {
-  const [chat, setChat] = useState([]);
-  const fetch = async () => {
-    const { data } = await axios.get("/api/chat");
-    setChat(data);
-  };
-
-  useEffect(() => {
-    fetch();
-  }, []);
+  const { user } = ChatState();
 
   return (
-    <div>
-      <div>
-        {chat.map((chat) => (
-          <div key={chat._id}>{chat.chatName} </div>
-        ))}
-      </div>
+    <div style={{ width: "100%" }}>
+      {user && <SideDrawer />}
+      <Box
+        display="flex"
+        justifyContent="space-between"
+        w="100%"
+        h="91.5vh"
+        p="10px"
+      >
+        {user && <MyChats />}
+        {user && <ChatBox />}
+      </Box>
     </div>
   );
 };
