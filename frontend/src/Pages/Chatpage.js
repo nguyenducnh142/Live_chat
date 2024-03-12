@@ -7,7 +7,7 @@ import { useState } from "react";
 
 const Chatpage = () => {
   const { user } = ChatState();
-  const { fecthAgain, setFecthAgain } = useState(false);
+  const [fecthAgain, setFecthAgain] = useState(false);
 
   return (
     <div style={{ width: "100%" }}>
